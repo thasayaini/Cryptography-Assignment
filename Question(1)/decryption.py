@@ -21,6 +21,9 @@ def find_position(matrix, char):
     return idx[0][0], idx[1][0]
 
 def playfair_decrypt(ciphertext, key):
+    if len(ciphertext) % 2 != 0:  # Ensure even length
+        ciphertext += 'X'  # Assuming 'X' was used for padding during encryption
+
     matrix = generate_playfair_matrix(key)
     plaintext = ""
 
@@ -68,11 +71,14 @@ def rail_fence_decrypt(ciphertext, depth):
 
     return plaintext
 
-# Product Cipher: Playfair + Rail Fence
+# Decryption Order: Rail Fence → Playfair
 def product_cipher_decrypt(ciphertext, key, depth):
-    playfair_text = playfair_decrypt(ciphertext, key)
-    rail_fence_text = rail_fence_decrypt(playfair_text, depth)
-    return playfair_text, rail_fence_text
+    rail_fence_text = rail_fence_decrypt(ciphertext, depth)  # Step 1: Rail Fence Decrypt
+    if len(rail_fence_text) % 2 != 0:
+        rail_fence_text += 'X'  # Ensure even length for Playfair
+
+    decrypted_text = playfair_decrypt(rail_fence_text, key)  # Step 2: Playfair Decrypt
+    return rail_fence_text, decrypted_text
 
 # Function to Decrypt and Display the Result
 def decrypt_text():
@@ -93,11 +99,11 @@ def decrypt_text():
         return
 
     start_time = time.perf_counter()
-    playfair_text, decrypted_text = product_cipher_decrypt(ciphertext, key, depth)
+    rail_fence_text, decrypted_text = product_cipher_decrypt(ciphertext, key, depth)
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
 
-    playfair_label.config(text=f"🔹 Playfair Output: {playfair_text}")
+    playfair_label.config(text=f"🔹 Rail Fence Output: {rail_fence_text}")
     result_label.config(text=f"🔓 Final Decrypted Text: {decrypted_text}")
     time_label.config(text=f"⏱ Decryption Time: {elapsed_time:.10f} seconds")
 
