@@ -25,11 +25,11 @@ class CryptoHomepage:
                          relief="flat", cursor="hand2", bd=5, highlightthickness=3, highlightbackground="white")
 
     def open_classical_cipher(self):
-        file_path = os.path.join("Question(1)", "homepage.py")
+        file_path = os.path.join("Question(1)", "homepageQ1.py")
         self.navigate_to_script(file_path)
 
     def open_hybrid_cipher(self):
-        file_path = os.path.join("Question(2)", "hybrid.py")
+        file_path = os.path.join("Question(2)", "homepageQ2.py")
         self.navigate_to_script(file_path)
 
     def navigate_to_script(self, file_path):
