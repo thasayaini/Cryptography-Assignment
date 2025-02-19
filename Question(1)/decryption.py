@@ -1,7 +1,9 @@
+import os
 import tkinter as tk
 from tkinter import messagebox
 import numpy as np
 import time
+import csv  # Import csv module
 
 # -------------------- Playfair Cipher Functions --------------------
 def generate_playfair_matrix(key):
@@ -85,6 +87,21 @@ def product_cipher_decrypt(ciphertext, key, depth):
     decrypted_text = playfair_decrypt(rail_fence_text, key)  # Step 2: Playfair Decrypt
     return rail_fence_text, decrypted_text
 
+# Function to write decryption times to CSV
+# Function to log encryption data
+def log_decryption_data(ciphertext, key, depth, railfence_output, final_output, elapsed_time):
+    file_exists = os.path.isfile("decryption_logs.csv")
+    
+    with open("decryption_logs.csv", mode="a", newline="") as file:
+        writer = csv.writer(file)
+        
+        # Write header if file doesn't exist
+        if not file_exists:
+            writer.writerow(["Ciphertext", "Key", "Depth", "Rail Fence Output", "Final Decrypted Text", "Decryption Time (s)"])
+        
+        # Append data
+        writer.writerow([ciphertext, key, depth, railfence_output, final_output, f"{elapsed_time:.10f}"])
+
 # Function to Decrypt and Display the Result
 def decrypt_text():
     ciphertext = entry_ciphertext.get().upper().replace(" ", "")
@@ -107,6 +124,8 @@ def decrypt_text():
     rail_fence_text, decrypted_text = product_cipher_decrypt(ciphertext, key, depth)
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
+
+    log_decryption_data(ciphertext, key, depth, rail_fence_text, decrypted_text, elapsed_time)# Log decryption time
 
     playfair_label.config(text=f"🔹 Rail Fence Output: {rail_fence_text}")
     result_label.config(text=f"🔓 Final Decrypted Text: {decrypted_text}")

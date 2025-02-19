@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import subprocess
 import os
+import sys
 
 
 class CryptoHomepage:
@@ -31,6 +32,7 @@ class CryptoHomepage:
         ).pack(pady=15)
 
     def create_button(self, text, command, color):
+        """Creates a styled button."""
         return tk.Button(
             self.root,
             text=text,
@@ -49,23 +51,28 @@ class CryptoHomepage:
         )
 
     def open_classical_cipher(self):
-        file_path = os.path.join("Question(1)", "homepageQ1.py")
-        self.navigate_to_script(file_path)
+        """Opens the Classical Symmetric Ciphers page."""
+        self.navigate_to_script("Question(1)", "homepageQ1.py")
 
     def open_hybrid_cipher(self):
-        file_path = os.path.join("Question(2)", "homepageQ2.py")
-        self.navigate_to_script(file_path)
+        """Opens the Hybrid Modern Cipher page."""
+        self.navigate_to_script("Question(2)", "homepageQ2.py")
 
-    def navigate_to_script(self, file_path):
+    def navigate_to_script(self, folder, filename):
         """Closes homepage.py, runs the target script, and reopens homepage.py after closing."""
+        script_dir = os.path.dirname(
+            os.path.abspath(__file__)
+        )  # Get current script directory
+        file_path = os.path.join(
+            script_dir, folder, filename
+        )  # Construct absolute path
+
         if os.path.exists(file_path):
-            self.root.withdraw()  # Hide the homepage
-            subprocess.Popen(
-                ["python", file_path]
-            ).wait()  # Wait for the script to close
-            self.root.deiconify()  # Show homepage again
+            self.root.withdraw()  # Hide homepage window
+            subprocess.run(["python", file_path], check=True)  # Run the target script
+            self.root.deiconify()  # Show homepage again after script closes
         else:
-            messagebox.showerror("Error", f"File not found: {file_path}")
+            messagebox.showerror("Error", f"File not found:\n{file_path}")
 
 
 if __name__ == "__main__":
