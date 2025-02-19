@@ -1,20 +1,21 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import  messagebox
 import numpy as np
 import time
 
-# Playfair Cipher Functions
+# -------------------- Playfair Cipher Functions --------------------
 def generate_playfair_matrix(key):
-    key = key.replace("J", "I").upper()
+    key = key.replace("J", "I").upper()# Replace 'J' with 'I' to maintain a 25-letter matrix
     matrix = []
     seen = set()
 
+    # Populate matrix with unique characters from key and the alphabet
     for char in key + "ABCDEFGHIKLMNOPQRSTUVWXYZ":
         if char not in seen:
             seen.add(char)
             matrix.append(char)
 
-    return np.array(matrix).reshape(5, 5)
+    return np.array(matrix).reshape(5, 5) # Reshape into a 5x5 grid
 
 def find_position(matrix, char):
     idx = np.where(matrix == char)
@@ -25,10 +26,10 @@ def prepare_playfair_text(plaintext):
     pairs = []
     i = 0
     while i < len(plaintext):
-        if i == len(plaintext) - 1:
+        if i == len(plaintext) - 1:  # If last character, append 'X' to complete pair
             pairs.append(plaintext[i] + "X")
             break
-        if plaintext[i] == plaintext[i + 1]:
+        if plaintext[i] == plaintext[i + 1]: # Handle duplicate letters by inserting 'X'
             pairs.append(plaintext[i] + "X")
             i += 1
         else:
@@ -45,27 +46,28 @@ def playfair_encrypt(plaintext, key):
         row1, col1 = find_position(matrix, a)
         row2, col2 = find_position(matrix, b)
 
-        if row1 == row2:
+        if row1 == row2:  # Same row: move right
             ciphertext += matrix[row1, (col1 + 1) % 5] + matrix[row2, (col2 + 1) % 5]
-        elif col1 == col2:
+        elif col1 == col2: # Same column: move down
             ciphertext += matrix[(row1 + 1) % 5, col1] + matrix[(row2 + 1) % 5, col2]
-        else:
+        else:  # Rectangle swap
             ciphertext += matrix[row1, col2] + matrix[row2, col1]
 
     return ciphertext
 
-# Rail Fence Cipher Functions
+# -------------------- Rail Fence Cipher Functions --------------------
 def rail_fence_encrypt(plaintext, depth):
-    rails = [''] * depth
-    row, step = 0, 1
+    rails = [''] * depth  # Create empty rails
+    row, step = 0, 1  # Track row position and movement direction
 
     for char in plaintext:
-        rails[row] += char
-        row += step
-        if row == depth - 1 or row == 0:
+        rails[row] += char  # Place character in the correct rail
+        row += step # Move to the next rail
+        if row == depth - 1 or row == 0: # Change direction at edges
             step *= -1
 
-    return ''.join(rails)
+    return ''.join(rails) # Concatenate all rails
+
 
 # Function to Encrypt and Display the Result
 def encrypt_text():
@@ -90,11 +92,11 @@ def encrypt_text():
     result_label.config(text=f"🔒 Final Encrypted Text: {rail_fence_text}")
     time_label.config(text=f"⏱ Encryption Time: {elapsed_time:.10f} seconds")
 
-# GUI Setup
+# -------------------- GUI Setup --------------------
 root = tk.Tk()
 root.title("🔐 Product Cipher Encryption")
 root.geometry("800x450")
-root.configure(bg="#2C3E50")
+root.configure(bg="#2C3E50") # Dark background
 
 # Heading Label
 title_label = tk.Label(root, text="🔐 Product Cipher Encryption", font=("Arial", 18, "bold"), fg="white", bg="#2C3E50")
@@ -105,7 +107,7 @@ frame = tk.Frame(root, bg="#34495E", padx=0, pady=20)
 frame.pack(pady=10)
 
 # Entry Styles
-entry_style = {"font": ("Arial", 12), "bg": "#ECF0F1", "bd": 2, "relief": "solid", "width": 50}  # Increased width
+entry_style = {"font": ("Arial", 12), "bg": "#ECF0F1", "bd": 2, "relief": "solid", "width": 50} 
 
 # Labels and Entry Fields
 tk.Label(frame, text="Enter Plaintext:", font=("Arial", 12, "bold"), fg="white", bg="#34495E").grid(row=0, column=0, sticky="w")
@@ -121,7 +123,7 @@ entry_depth = tk.Entry(frame, **entry_style)
 entry_depth.grid(row=2, column=1, pady=5, padx=10)
 
 
-# Encrypt Button with hover effect
+# Encrypt Button
 def on_enter(e):
     encrypt_button.config(bg="#1ABC9C", fg="black")
 

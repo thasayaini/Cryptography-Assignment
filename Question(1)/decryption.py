@@ -3,12 +3,13 @@ from tkinter import messagebox
 import numpy as np
 import time
 
-# Playfair Cipher Functions
+# -------------------- Playfair Cipher Functions --------------------
 def generate_playfair_matrix(key):
     key = key.replace("J", "I").upper()
     matrix = []
     seen = set()
 
+    # Constructing the matrix using the key followed by remaining letters
     for char in key + "ABCDEFGHIKLMNOPQRSTUVWXYZ":
         if char not in seen:
             seen.add(char)
@@ -21,6 +22,9 @@ def find_position(matrix, char):
     return idx[0][0], idx[1][0]
 
 def playfair_decrypt(ciphertext, key):
+    if len(ciphertext) % 2 != 0:  # Ensure even length
+        ciphertext += 'X'  
+
     matrix = generate_playfair_matrix(key)
     plaintext = ""
 
@@ -29,26 +33,29 @@ def playfair_decrypt(ciphertext, key):
         row1, col1 = find_position(matrix, a)
         row2, col2 = find_position(matrix, b)
 
-        if row1 == row2:
+        # Apply Playfair decryption rules
+        if row1 == row2: # Same row → shift left
             plaintext += matrix[row1, (col1 - 1) % 5] + matrix[row2, (col2 - 1) % 5]
-        elif col1 == col2:
+        elif col1 == col2: # Same column → shift up
             plaintext += matrix[(row1 - 1) % 5, col1] + matrix[(row2 - 1) % 5, col2]
-        else:
+        else: # Rectangle swap
             plaintext += matrix[row1, col2] + matrix[row2, col1]
 
     return plaintext
 
-# Rail Fence Cipher Functions
+# -------------------- Rail Fence Cipher Functions --------------------
 def rail_fence_decrypt(ciphertext, depth):
     rail_length = [0] * depth
     row, step = 0, 1
 
+    # Determine the length of each rail
     for _ in ciphertext:
         rail_length[row] += 1
         row += step
         if row == depth - 1 or row == 0:
             step *= -1
 
+    # Reconstruct the rails
     rails = []
     index = 0
     for length in rail_length:
@@ -59,6 +66,7 @@ def rail_fence_decrypt(ciphertext, depth):
     row, step = 0, 1
     rail_pointers = [0] * depth
 
+    # Read characters in the correct order to reconstruct the message
     for _ in ciphertext:
         plaintext += rails[row][rail_pointers[row]]
         rail_pointers[row] += 1
@@ -68,11 +76,14 @@ def rail_fence_decrypt(ciphertext, depth):
 
     return plaintext
 
-# Product Cipher: Playfair + Rail Fence
+# Decryption Order: Rail Fence → Playfair
 def product_cipher_decrypt(ciphertext, key, depth):
-    playfair_text = playfair_decrypt(ciphertext, key)
-    rail_fence_text = rail_fence_decrypt(playfair_text, depth)
-    return playfair_text, rail_fence_text
+    rail_fence_text = rail_fence_decrypt(ciphertext, depth)  # Step 1: Rail Fence Decrypt
+    if len(rail_fence_text) % 2 != 0:
+        rail_fence_text += 'X'  # Ensure even length for Playfair
+
+    decrypted_text = playfair_decrypt(rail_fence_text, key)  # Step 2: Playfair Decrypt
+    return rail_fence_text, decrypted_text
 
 # Function to Decrypt and Display the Result
 def decrypt_text():
@@ -93,15 +104,15 @@ def decrypt_text():
         return
 
     start_time = time.perf_counter()
-    playfair_text, decrypted_text = product_cipher_decrypt(ciphertext, key, depth)
+    rail_fence_text, decrypted_text = product_cipher_decrypt(ciphertext, key, depth)
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
 
-    playfair_label.config(text=f"🔹 Playfair Output: {playfair_text}")
+    playfair_label.config(text=f"🔹 Rail Fence Output: {rail_fence_text}")
     result_label.config(text=f"🔓 Final Decrypted Text: {decrypted_text}")
     time_label.config(text=f"⏱ Decryption Time: {elapsed_time:.10f} seconds")
 
-# GUI Setup
+# -------------------- GUI Setup --------------------
 root = tk.Tk()
 root.title("🔓 Product Cipher Decryption")
 root.geometry("800x450")
@@ -116,7 +127,7 @@ frame = tk.Frame(root, bg="#34495E", padx=0, pady=20)
 frame.pack(pady=10)
 
 # Entry Styles
-entry_style = {"font": ("Arial", 12), "bg": "#ECF0F1", "bd": 2, "relief": "solid", "width": 50}  # Increased width
+entry_style = {"font": ("Arial", 12), "bg": "#ECF0F1", "bd": 2, "relief": "solid", "width": 50}  
 
 # Labels and Entry Fields
 tk.Label(frame, text="Enter Ciphertext:", font=("Arial", 12, "bold"), fg="white", bg="#34495E").grid(row=0, column=0, sticky="w")
@@ -131,7 +142,7 @@ tk.Label(frame, text="Enter Rail Fence Depth:", font=("Arial", 12, "bold"), fg="
 entry_depth = tk.Entry(frame, **entry_style)
 entry_depth.grid(row=2, column=1, pady=5, padx=10)
 
-# Decrypt Button with hover effect
+# Decrypt Button 
 def on_enter(e):
     decrypt_button.config(bg="#E74C3C", fg="black")
 
